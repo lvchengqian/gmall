@@ -2,11 +2,16 @@ package com.atguigu.gmall.manage.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.atguigu.gmall.bean.*;
+import com.atguigu.gmall.service.ListService;
 import com.atguigu.gmall.service.ManageService;
+import jdk.internal.org.objectweb.asm.tree.TryCatchBlockNode;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 @Controller
@@ -15,6 +20,9 @@ public class AttrManageController {
 
     @Reference
     private ManageService manageService;
+
+    @Reference
+    private ListService listService;
     // 因为easyUI 控件是基于Json格式数据，所以返回Json数据
     @RequestMapping("getCatalog1")
     @ResponseBody
@@ -56,5 +64,31 @@ public class AttrManageController {
         BaseAttrInfo baseAttrInfo = manageService.getAttrInfo(attrId);
         return  baseAttrInfo.getAttrValueList();
     }
+
+    @RequestMapping(value = "onSale",method = RequestMethod.GET)
+    @ResponseBody
+    public void onSale(String skuId){
+        //根据skuId查询skuInfo信息
+        SkuInfo skuInfo = manageService.getSkuInfo(skuId);
+        //数据从哪里来
+        SkuLsInfo skuLsInfo = new SkuLsInfo();
+
+        try {
+            BeanUtils.copyProperties(skuLsInfo,skuInfo);
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+       
+        // 调用服务层
+
+        listService.saveSkuInfo(skuLsInfo);
+    }
+
+
+
+
 
 }
